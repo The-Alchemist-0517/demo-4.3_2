@@ -56,17 +56,26 @@ class GridEnv(gym.Env):
         # 在类对象内部访问实例属性
         # 获取终止状态
 
-    # 返回下一步状态、立即回报和状态转移概率
-    def transform(self, state, action):
-        # 遍历动作空间，当不在状态转移概率中时，该状态设为-1
-        s = -1
-        r = 0
-        key = '%i_%s' % (state, action)
-        if key in self.rewards:
-            r = self.rewards[key]
+    def transform(self, state, action):  ##return is_terminal,state, reward
+        if state in self.terminate_states:
+            return True, state, 0
+
+        key = '%d_%s' % (state, action)
         if key in self.t:
-            s = self.t[key]
-        return self.t, s, r
+            next_state = self.t[key]
+        else:
+            next_state = state
+
+        is_terminal = False
+        if next_state in self.terminate_states:
+            is_terminal = True
+
+        if key not in self.rewards:
+            r = 0.0
+        else:
+            r = self.rewards[key]
+
+        return is_terminal, next_state, r
 
     def getTerminal(self):
         return self.terminate_states
