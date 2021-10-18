@@ -28,18 +28,20 @@ def compute_error(qfunc):
         sum1 += error * error
     return sum1
 
+
 def epsilon_greedy(qfunc, state, epsilon):
     ## max q action
-    amax    = 0
-    key     = "%d_%s"%(state, actions[0])
-    qmax    = qfunc[key]
+    amax = 0
+    key = "%d_%s" % (state, actions[0])
+    qmax = qfunc[key]
     for i in range(len(actions)):
-        key = "%d_%s"%(state, actions[i])
-        q   = qfunc[key]
+        key = "%d_%s" % (state, actions[i])
+        q = qfunc[key]
         if qmax < q:
-            qmax  = q
-            amax  = i
-        ##probability
+            qmax = q
+            amax = i
+
+            ##probability
     pro = [0.0 for i in range(len(actions))]
     pro[amax] += 1 - epsilon
     for i in range(len(actions)):
@@ -50,40 +52,18 @@ def epsilon_greedy(qfunc, state, epsilon):
     s = 0.0
     for i in range(len(actions)):
         s += pro[i]
-        if s >= r:
-            return actions[i]
-        else:
-            return actions[len(actions) - 1]
-
+        if s >= r: return actions[i]
+    return actions[len(actions) - 1]
 
 def mc(num_iter1, epsilon):
     x = []
     y = []
     n = dict()
-    # 声明一个空字典，来保存文本文件数据
-    qfunc = {}
-
-    # 打开文本文件
-    file = open('best_qfunc.txt', 'r')
-
-    # 遍历文本文件的每一行，strip可以移除字符串头尾指定的字符（默认为空格或换行符）或字符序列
-    for line in file.readlines():
-        line = line.strip()
-        k = line.split(':')[0]
-        v = line.split(':')[1]
-        qfunc[k] = float(v)
-
-    # 依旧是关闭文件
-    file.close()
-
-    # #  可以打印出来瞅瞅
-    # print(qfunc)
-
-    # qfunc = dict()
+    qfunc = dict()
     for s in states:
         for a in actions:
-            # qfunc["%d_%s" % (s, a)] = 0.0
-            n["%d_%s" % (s, a)] = 0.1
+            qfunc["%d_%s" % (s, a)] = 0.0
+            n["%d_%s" % (s, a)] = 0.001
 
     for iter1 in range(num_iter1):
         x.append(iter1)
@@ -96,7 +76,7 @@ def mc(num_iter1, epsilon):
         s = states[int(random.random() * len(states))]
         t = False
         count = 0
-        while False==t and count < 1000:
+        while False==t and count < 100:
             a = epsilon_greedy(qfunc, s, epsilon)
             t, s1, r = grid.transform(s, a)
             s_sample.append(s)
@@ -106,20 +86,23 @@ def mc(num_iter1, epsilon):
             count += 1
 
         g = 0.0
-        for i in range(len(s_sample)-1 , -1,-1):
+        for i in range(len(s_sample) - 1, -1, -1):
             g *= gamma
             g += r_sample[i]
 
-        for j in range(len(s_sample)):
-            key = "%d_%s" % (s_sample[j], a_sample[j])
+        for i in range(len(s_sample)):
+            key = "%d_%s" % (s_sample[i], a_sample[i])
             n[key] += 1.0
             qfunc[key] = (qfunc[key] * (n[key] - 1) + g) / n[key]
-            print(qfunc)
-            g -= r_sample[j]
+
+            g -= r_sample[i]
             g /= gamma
 
-    # plt.plot(x, y, "-", label="mc epsilon=%2.1f" % (epsilon))
+    plt.plot(x, y, "-", label="mc epsilon=%2.1f" % (epsilon))
+    print(qfunc)
     return qfunc
+
+
 
 
 
