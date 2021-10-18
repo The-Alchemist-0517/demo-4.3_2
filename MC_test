@@ -8,9 +8,12 @@ from MC import *
 
 if __name__ == "__main__":
     read_best()
-    # plt.figure(figsize=(12,6))
+    plt.figure(figsize=(12,6))
 
-    mc(num_iter1=100, epsilon=0.5)
+    mc(num_iter1=1000, epsilon=0.1)
+    mc(num_iter1=1000, epsilon=0.2)
+    mc(num_iter1=1000, epsilon=0)
+    mc(num_iter1=1000, epsilon=0.9)
     # sarsa(num_iter1 = 1000, alpha = 0.2,  epsilon = 0.1)
     # sarsa(num_iter1 = 1000, alpha = 0.4,  epsilon = 0.1)
     # sarsa(num_iter1 = 1000, alpha = 0.2,  epsilon = 0.2)
@@ -20,7 +23,7 @@ if __name__ == "__main__":
     # qlearning(num_iter1 = 1000, alpha = 0.2,  epsilon = 0.2)
     # qlearning(num_iter1 = 1000, alpha = 0.4,  epsilon = 0.2)
 
-    # plt.xlabel("number of iterations")
-    # plt.ylabel("square errors")
-    # plt.legend()
-    # plt.show()
+    plt.xlabel("number of iterations")
+    plt.ylabel("square errors")
+    plt.legend()
+    plt.show()
