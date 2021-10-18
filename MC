@@ -1,0 +1,127 @@
+import sys
+sys.path.append("./grid_mdp.py")
+import grid_mdp
+import random
+random.seed(0)
+import matplotlib.pyplot as plt
+
+grid     = grid_mdp.GridEnv()
+states   = grid.getStates()
+actions  = grid.getActions()
+gamma    = grid.getGamma()
+
+best = dict()
+def read_best():
+    f = open("best_qfunc.txt")
+    for line in f:
+        line = line.strip()
+        if len(line) == 0: continue
+        eles = line.split(":")
+        best[eles[0]] = float(eles[1])
+
+
+
+def compute_error(qfunc):
+    sum1 = 0.0
+    for key in qfunc:
+        error =  qfunc[key] - best[key]
+        sum1 += error * error
+    return sum1
+
+def epsilon_greedy(qfunc, state, epsilon):
+    ## max q action
+    amax    = 0
+    key     = "%d_%s"%(state, actions[0])
+    qmax    = qfunc[key]
+    for i in range(len(actions)):
+        key = "%d_%s"%(state, actions[i])
+        q   = qfunc[key]
+        if qmax < q:
+            qmax  = q
+            amax  = i
+        ##probability
+    pro = [0.0 for i in range(len(actions))]
+    pro[amax] += 1 - epsilon
+    for i in range(len(actions)):
+        pro[i] += epsilon / len(actions)
+
+    ##choose
+    r = random.random()
+    s = 0.0
+    for i in range(len(actions)):
+        s += pro[i]
+        if s >= r:
+            return actions[i]
+        else:
+            return actions[len(actions) - 1]
+
+
+def mc(num_iter1, epsilon):
+    x = []
+    y = []
+    n = dict()
+    # 声明一个空字典，来保存文本文件数据
+    qfunc = {}
+
+    # 打开文本文件
+    file = open('best_qfunc.txt', 'r')
+
+    # 遍历文本文件的每一行，strip可以移除字符串头尾指定的字符（默认为空格或换行符）或字符序列
+    for line in file.readlines():
+        line = line.strip()
+        k = line.split(':')[0]
+        v = line.split(':')[1]
+        qfunc[k] = float(v)
+
+    # 依旧是关闭文件
+    file.close()
+
+    # #  可以打印出来瞅瞅
+    # print(qfunc)
+
+    # qfunc = dict()
+    for s in states:
+        for a in actions:
+            # qfunc["%d_%s" % (s, a)] = 0.0
+            n["%d_%s" % (s, a)] = 0.1
+
+    for iter1 in range(num_iter1):
+        x.append(iter1)
+        y.append(compute_error(qfunc))
+
+        s_sample = []
+        a_sample = []
+        r_sample = []
+
+        s = states[int(random.random() * len(states))]
+        t = False
+        count = 0
+        while False==t and count < 1000:
+            a = epsilon_greedy(qfunc, s, epsilon)
+            t, s1, r = grid.transform(s, a)
+            s_sample.append(s)
+            r_sample.append(r)
+            a_sample.append(a)
+            s = s1
+            count += 1
+
+        g = 0.0
+        for i in range(len(s_sample)-1 , -1,-1):
+            g *= gamma
+            g += r_sample[i]
+
+        for j in range(len(s_sample)):
+            key = "%d_%s" % (s_sample[j], a_sample[j])
+            n[key] += 1.0
+            qfunc[key] = (qfunc[key] * (n[key] - 1) + g) / n[key]
+            print(qfunc)
+            g -= r_sample[j]
+            g /= gamma
+
+    # plt.plot(x, y, "-", label="mc epsilon=%2.1f" % (epsilon))
+    return qfunc
+
+
+
+
+
